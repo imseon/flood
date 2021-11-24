@@ -165,7 +165,12 @@ const TorrentList: FC = observer(() => {
 
   return (
     <TorrentListDropzone>
-      <div className="torrent__list__wrapper" role="table">
+      <div className="torrent__list__wrapper" role="table" onTouchEnd={() => {
+        if(window.innerWidth <= 720) {
+          const view = document.getElementsByClassName('application__view')[0];
+          view.classList.remove('application__view--sidebar-alternative-state')
+        }
+      }}>
         <ContextMenuMountPoint id="torrent-list-item" />
         {torrentListHeading}
         {content}
