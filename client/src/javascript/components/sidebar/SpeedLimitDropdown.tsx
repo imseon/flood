@@ -115,9 +115,17 @@ const SpeedLimitDropdown: FC = observer(() => {
       handleItemSelect={(item) => {
         if (item.value != null) {
           if (item.property === 'download') {
-            ClientActions.saveSetting('throttleGlobalDownSpeed', item.value);
+            const newSpeedLimitSetting = {
+              throttleGlobalDownSpeed: item.value,
+              throttleGlobalUpSpeed: speedListOptions.throttleGlobalUpSpeed
+            }
+            ClientActions.saveSettings(newSpeedLimitSetting);
           } else if (item.property === 'upload') {
-            ClientActions.saveSetting('throttleGlobalUpSpeed', item.value);
+            const newSpeedLimitSetting = {
+              throttleGlobalDownSpeed: speedListOptions.throttleGlobalDownSpeed,
+              throttleGlobalUpSpeed: item.value
+            }
+            ClientActions.saveSettings(newSpeedLimitSetting);
           }
         }
       }}
