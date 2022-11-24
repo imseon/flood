@@ -21,10 +21,10 @@ WORKDIR /usr/src/app/
 COPY . ./
 
 # Fetch dependencies from npm
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Build assets
-RUN npm run build-assets
+RUN npm run build
 
 # Now get the clean Node.js image
 FROM ${NODE_IMAGE} as flood

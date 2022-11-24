@@ -26,7 +26,7 @@ import type {TransferSummary} from '@shared/types/TransferData';
 import type {TransmissionConnectionSettings} from '@shared/schema/ClientConnectionSettings';
 import type {SetClientSettingsOptions} from '@shared/types/api/client';
 
-import ClientGatewayService from '../interfaces/clientGatewayService';
+import ClientGatewayService from '../clientGatewayService';
 import ClientRequestManager from './clientRequestManager';
 import {fetchUrls} from '../../util/fetchUtil';
 import {getDomainsFromURLs} from '../../util/torrentPropertiesUtil';
@@ -353,6 +353,7 @@ class TransmissionClientGatewayService extends ClientGatewayService {
         'hashString',
         'downloadDir',
         'name',
+        'comment',
         'haveValid',
         'addedDate',
         'dateCreated',
@@ -389,6 +390,7 @@ class TransmissionClientGatewayService extends ClientGatewayService {
               const torrentProperties: TorrentProperties = {
                 hash: torrent.hashString.toUpperCase(),
                 name: torrent.name,
+                comment: torrent.comment,
                 bytesDone: torrent.haveValid,
                 dateActive: torrent.rateDownload > 0 || torrent.rateUpload > 0 ? -1 : torrent.activityDate,
                 dateAdded: torrent.addedDate,
