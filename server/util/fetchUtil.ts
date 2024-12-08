@@ -13,38 +13,38 @@ export const fetchUrls = async (
 
   await Promise.all(
     inputUrls.map(async (url) => {
-      if (url.startsWith('http:') || url.startsWith('https:')) {
-        const domain = url.split('/')[2];
+      // if (url.startsWith('http:') || url.startsWith('https:')) {
+      //   const domain = url.split('/')[2];
 
-        const file = await axios({
-          method: 'GET',
-          url,
-          responseType: 'arraybuffer',
-          headers: cookies?.[domain]
-            ? {
-                Cookie: cookies[domain].join('; ').concat(';'),
-              }
-            : undefined,
-        }).then(
-          (res) => res.data,
-          (e: AxiosError) => console.error(e),
-        );
+      //   const file = await axios({
+      //     method: 'GET',
+      //     url,
+      //     responseType: 'arraybuffer',
+      //     headers: cookies?.[domain]
+      //       ? {
+      //           Cookie: cookies[domain].join('; ').concat(';'),
+      //         }
+      //       : undefined,
+      //   }).then(
+      //     (res) => res.data,
+      //     (e: AxiosError) => console.error(e),
+      //   );
 
-        if (file instanceof Buffer) {
-          files.push(file);
-        }
+      //   if (file instanceof Buffer) {
+      //     files.push(file);
+      //   }
 
-        return;
-      }
+      //   return;
+      // }
 
-      if (fs.existsSync(url) && isAllowedPath(path.resolve(url))) {
-        try {
-          files.push(await fs.promises.readFile(url));
-          return;
-        } catch {
-          // do nothing.
-        }
-      }
+      // if (fs.existsSync(url) && isAllowedPath(path.resolve(url))) {
+      //   try {
+      //     files.push(await fs.promises.readFile(url));
+      //     return;
+      //   } catch {
+      //     // do nothing.
+      //   }
+      // }
 
       urls.push(url);
     }),
