@@ -23,6 +23,8 @@ build:
     - docker push $CI_REGISTRY_IMAGE/flood:latest
   only:
     - master
+  tags:
+    - nodejs
 
 build-multiarch:
   stage: build
@@ -42,3 +44,5 @@ build-multiarch:
   only:
     - master
   when: manual
+  tags:
+    - nodejs
