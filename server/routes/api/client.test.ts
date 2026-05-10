@@ -1,32 +1,37 @@
+import fastify from 'fastify';
 import supertest from 'supertest';
-
-import app from '../../app';
-import {getAuthToken} from '../../util/authUtil';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 
 import type {ClientSettings} from '../../../shared/types/ClientSettings';
+import {getAuthToken} from '../../util/authUtil';
+import constructRoutes from '..';
 
-const request = supertest(app);
+const app = fastify({disableRequestLogging: true, logger: true});
+let request: supertest.SuperTest<supertest.Test>;
+
+beforeAll(async () => {
+  await constructRoutes(app);
+  await app.ready();
+  request = supertest(app.server);
+});
+
+afterAll(async () => {
+  await app.close();
+});
 
 const authToken = `jwt=${getAuthToken('_config')}`;
 
-jest.setTimeout(20000);
-
 describe('GET /api/client/connection-test', () => {
-  it('Checks connection status', (done) => {
-    request
+  it('Checks connection status', async () => {
+    const res = await request
       .get('/api/client/connection-test')
       .send()
       .set('Cookie', [authToken])
       .set('Accept', 'application/json')
       .expect(200)
-      .expect('Content-Type', /json/)
-      .end((err, res) => {
-        if (err) done(err);
+      .expect('Content-Type', /json/);
 
-        expect(res.body).toMatchObject({isConnected: true});
-
-        done();
-      });
+    expect(res.body).toMatchObject({isConnected: true});
   });
 });
 
@@ -36,36 +41,27 @@ const settings: Partial<ClientSettings> = {
 };
 
 describe('PATCH /api/client/settings', () => {
-  it('Sets client settings', (done) => {
-    request
+  it('Sets client settings', async () => {
+    await request
       .patch('/api/client/settings')
       .send(settings)
       .set('Cookie', [authToken])
       .set('Accept', 'application/json')
       .expect(200)
-      .expect('Content-Type', /json/)
-      .end((err, _res) => {
-        if (err) done(err);
-        done();
-      });
+      .expect('Content-Type', /json/);
   });
 });
 
 describe('GET /api/client/settings', () => {
-  it('Gets all client settings', (done) => {
-    request
+  it('Gets all client settings', async () => {
+    const res = await request
       .get('/api/client/settings')
       .send()
       .set('Cookie', [authToken])
       .set('Accept', 'application/json')
       .expect(200)
-      .expect('Content-Type', /json/)
-      .end((err, res) => {
-        if (err) done(err);
+      .expect('Content-Type', /json/);
 
-        expect(res.body).toMatchObject(settings);
-
-        done();
-      });
+    expect(res.body).toMatchObject(settings);
   });
 });

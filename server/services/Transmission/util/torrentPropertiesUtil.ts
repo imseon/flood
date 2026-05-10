@@ -1,7 +1,6 @@
-import {TransmissionTorrentError, TransmissionTorrentStatus} from '../types/TransmissionTorrentsMethods';
-
 import type {TorrentProperties} from '../../../../shared/types/Torrent';
 import type {TransmissionTorrentProperties} from '../types/TransmissionTorrentsMethods';
+import {TransmissionTorrentError, TransmissionTorrentStatus} from '../types/TransmissionTorrentsMethods';
 
 const getTorrentStatus = (
   properties: Pick<
@@ -43,7 +42,11 @@ const getTorrentStatus = (
   }
 
   if (error !== TransmissionTorrentError.TR_STAT_OK) {
-    statuses.push('error');
+    if (error === TransmissionTorrentError.TR_STAT_TRACKER_WARNING) {
+      statuses.push('warning');
+    } else {
+      statuses.push('error');
+    }
   }
 
   if (haveValid === totalSize) {

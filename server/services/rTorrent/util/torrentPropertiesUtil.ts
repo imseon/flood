@@ -1,8 +1,8 @@
-import truncateTo from './numberUtils';
-
+import type {TorrentStatus} from '@shared/constants/torrentStatusMap';
 import type {AddTorrentByFileOptions} from '@shared/schema/api/torrents';
 import type {TorrentProperties} from '@shared/types/Torrent';
-import type {TorrentStatus} from '@shared/constants/torrentStatusMap';
+
+import truncateTo from './numberUtils';
 
 export const getTorrentETAFromProperties = (
   processingTorrentProperties: Record<string, unknown>,
@@ -93,6 +93,8 @@ export const encodeTags = (tags: TorrentProperties['tags']): string => {
     .join(',');
 };
 
+const SEQUENTIAL_SET_METHOD = 'd.down.sequential.set';
+
 export const getAddTorrentPropertiesCalls = ({
   destination,
   isBasePath,
@@ -113,7 +115,7 @@ export const getAddTorrentPropertiesCalls = ({
   }
 
   if (isSequential) {
-    result.push(`d.down.sequential.set=1`);
+    result.push(`${SEQUENTIAL_SET_METHOD}=1`);
   }
 
   if (isInitialSeeding) {

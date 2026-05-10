@@ -1,6 +1,11 @@
 import type {TorrentProperties} from '@shared/types/Torrent';
 import type {TorrentStatus} from '@shared/constants/torrentStatusMap';
 
+interface LocationFilter {
+  type: 'location';
+  filter: string[];
+}
+
 interface StatusFilter {
   type: 'status';
   filter: TorrentStatus[];
@@ -18,15 +23,35 @@ interface TagFilter {
 
 function filterTorrents(
   torrentList: TorrentProperties[],
-  opts: StatusFilter | TrackerFilter | TagFilter,
+  opts: LocationFilter | StatusFilter | TrackerFilter | TagFilter,
 ): TorrentProperties[] {
   if (opts.filter.length) {
+    if (opts.type === 'location') {
+      return torrentList.filter((torrent) => opts.filter.some((directory) => torrent.directory.startsWith(directory)));
+    }
+
     if (opts.type === 'status') {
       return torrentList.filter((torrent) => torrent.status.some((status) => opts.filter.includes(status)));
     }
 
     if (opts.type === 'tracker') {
-      return torrentList.filter((torrent) => torrent.trackerURIs.some((uri) => opts.filter.includes(uri)));
+      return torrentList.filter((torrent) =>
+        torrent.trackerURIs.some((uri) => {
+          // Extract domain from tracker URI to match taxonomy computation
+          let domain = uri;
+          try {
+            if (uri.includes('://')) {
+              const url = new URL(uri);
+              domain = url.hostname;
+            } else {
+              domain = uri.split('/')[0].split(':')[0];
+            }
+          } catch {
+            // Use as-is if parsing fails
+          }
+          return opts.filter.includes(domain);
+        }),
+      );
     }
 
     if (opts.type === 'tag') {

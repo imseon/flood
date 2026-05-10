@@ -1,9 +1,8 @@
 declare module '*.md' {
-  export const react: any;
-  const value: any;
+  const value: string;
   export default value;
 }
 
-declare module '@lingui/loader!*.json?raw-lingui' {
+declare module '*?lingui' {
   export const messages: Record<string, string[]>;
 }

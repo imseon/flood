@@ -10,7 +10,7 @@ PACKAGE = "flood"
 
 RECOMMENDS = ["mediainfo"]
 
-VERSION = "4.7.0-0"
+VERSION = "version-to-be-replaced-0"
 
 genrule(
     name = "flood-pkg-arm64",
@@ -19,7 +19,7 @@ genrule(
         "package.json",
     ] + glob(["node_modules/**/*"]),
     outs = ["arm64/flood"],
-    cmd = "pkg $$(dirname $(location package.json)) -t node14-linuxstatic-arm64 --out-path $(RULEDIR)/arm64",
+    cmd = "pkg $$(dirname $(location package.json)) -t node22-linuxstatic-arm64 --out-path $(RULEDIR)/arm64",
     executable = True,
 )
 
@@ -30,7 +30,7 @@ genrule(
         "package.json",
     ] + glob(["node_modules/**/*"]),
     outs = ["x64/flood"],
-    cmd = "pkg $$(dirname $(location package.json)) -t node14-linuxstatic-x64 --out-path $(RULEDIR)/x64",
+    cmd = "pkg $$(dirname $(location package.json)) -t node22-linuxstatic-x64 --out-path $(RULEDIR)/x64",
     executable = True,
 )
 

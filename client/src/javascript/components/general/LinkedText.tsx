@@ -10,7 +10,7 @@ function isValidHttpUrl(s: string) {
 
   try {
     url = new URL(s);
-  } catch (_) {
+  } catch {
     return false;
   }
 
@@ -18,21 +18,21 @@ function isValidHttpUrl(s: string) {
 }
 
 const LinkedText: FC<LinkedTextProps> = ({text, className}: LinkedTextProps) => {
-  const nodes = text.split(/\s/).map((s) =>
-    isValidHttpUrl(s.trimEnd()) ? (
-      <a href={s.trimEnd()} target="_blank" rel="noopener noreferrer">
-        {s}
-      </a>
-    ) : (
-      s
-    ),
-  );
+  const nodes = text.split(/([ \n])/).map((s, index) => {
+    if (s === '\n') {
+      return <br key={index} />;
+    }
+    if (isValidHttpUrl(s)) {
+      return (
+        <a href={s.trimEnd()} target="_blank" rel="noopener noreferrer" key={index}>
+          {s}
+        </a>
+      );
+    }
+    return s;
+  });
 
   return <span className={className}>{nodes}</span>;
-};
-
-LinkedText.defaultProps = {
-  className: undefined,
 };
 
 export default LinkedText;

@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 import {FC, useEffect, useRef, useState} from 'react';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {useLingui} from '@lingui/react';
 
 import FloodActions from '@client/actions/FloodActions';
@@ -9,7 +9,7 @@ import NotificationStore from '@client/stores/NotificationStore';
 
 import type {Notification} from '@shared/types/Notification';
 
-import Tooltip from '../general/Tooltip';
+import Tooltip, {TooltipHandle} from '../general/Tooltip';
 
 const NOTIFICATIONS_PER_PAGE = 10;
 
@@ -63,15 +63,14 @@ const NotificationTopToolbar: FC<NotificationTopToolbarProps> = ({
 };
 
 interface NotificationItemProps {
-  index: number;
   notification: Notification;
 }
 
-const NotificationItem: FC<NotificationItemProps> = ({index, notification}: NotificationItemProps) => {
+const NotificationItem: FC<NotificationItemProps> = ({notification}: NotificationItemProps) => {
   const {i18n} = useLingui();
 
   return (
-    <li className="notifications__list__item" key={index}>
+    <li className="notifications__list__item">
       <div className="notification__heading">
         <span className="notification__category">{i18n._(`${notification.id}.heading`)}</span>
         {' — '}
@@ -159,7 +158,7 @@ const NotificationBottomToolbar: FC<NotificationBottomToolbarProps> = ({
 const NotificationsButton: FC = observer(() => {
   const {i18n} = useLingui();
 
-  const tooltipRef = useRef<Tooltip>(null);
+  const tooltipRef = useRef<TooltipHandle>(null);
   const notificationsListRef = useRef<HTMLUListElement>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -195,7 +194,7 @@ const NotificationsButton: FC = observer(() => {
               style={{minHeight: prevHeight}}
             >
               {notifications.map((notification, index) => (
-                <NotificationItem index={index} notification={notification} />
+                <NotificationItem key={index} notification={notification} />
               ))}
             </ul>
             <NotificationBottomToolbar

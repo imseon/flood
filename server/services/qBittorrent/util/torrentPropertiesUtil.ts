@@ -1,9 +1,8 @@
-import {TorrentPeer} from '../../../../shared/types/TorrentPeer';
-import {TorrentTrackerType} from '../../../../shared/types/TorrentTracker';
-
-import type {QBittorrentTorrentState} from '../types/QBittorrentTorrentsMethods';
 import type {TorrentProperties} from '../../../../shared/types/Torrent';
+import {TorrentPeer} from '../../../../shared/types/TorrentPeer';
 import type {TorrentTracker} from '../../../../shared/types/TorrentTracker';
+import {TorrentTrackerType} from '../../../../shared/types/TorrentTracker';
+import type {QBittorrentTorrentState} from '../types/QBittorrentTorrentsMethods';
 
 export const getTorrentPeerPropertiesFromFlags = (flags: string): Pick<TorrentPeer, 'isEncrypted' | 'isIncoming'> => {
   const flagsArray = flags.split(' ');
@@ -26,7 +25,10 @@ export const getTorrentTrackerTypeFromURL = (url: string): TorrentTracker['type'
   return TorrentTrackerType.DHT;
 };
 
-export const getTorrentStatusFromState = (state: QBittorrentTorrentState): TorrentProperties['status'] => {
+export const getTorrentStatusFromState = (
+  state: QBittorrentTorrentState,
+  trackerMessage = '',
+): TorrentProperties['status'] => {
   const statuses: TorrentProperties['status'] = [];
 
   switch (state) {
@@ -42,6 +44,7 @@ export const getTorrentStatusFromState = (state: QBittorrentTorrentState): Torre
       statuses.push('seeding');
       break;
     case 'pausedUP':
+    case 'stoppedUP':
       statuses.push('complete');
       statuses.push('inactive');
       statuses.push('stopped');
@@ -62,12 +65,14 @@ export const getTorrentStatusFromState = (state: QBittorrentTorrentState): Torre
       statuses.push('downloading');
       break;
     case 'metaDL':
+    case 'forcedMetaDL':
     case 'downloading':
     case 'forcedDL':
       statuses.push('active');
       statuses.push('downloading');
       break;
     case 'pausedDL':
+    case 'stoppedDL':
       statuses.push('inactive');
       statuses.push('stopped');
       break;
@@ -87,6 +92,10 @@ export const getTorrentStatusFromState = (state: QBittorrentTorrentState): Torre
       break;
     default:
       break;
+  }
+
+  if (trackerMessage.length > 0) {
+    statuses.push('warning');
   }
 
   return statuses;

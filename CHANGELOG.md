@@ -1,5 +1,171 @@
 # Changelog
 
+## [4.11.0] (October 17, 2025)
+
+- feat: show size for status filter (#923)
+- fix: improve server startup message (#921)
+
+## [4.10.0] (October 4, 2025)
+
+- feat: Add optional Last Activity column to torrent list (#906)
+- feat(client): add units of measure to throttle speeds (#899)
+- feat: show 2 decimal in size usage (#916)
+- fix: `LoadingOverlay` sometimes does not hide after login/logout (#905)
+- fix: log authentication failed reasons (#882)
+- Migrate webpack devServer proxy options to webpack v5 (#904)
+- i18n: new translations (#919, #918)
+- build(deps-dev): bump form-data from 4.0.1 to 4.0.4 (#900)
+- build(deps-dev): bump axios from 1.8.2 to 1.12.0 (#912)
+- build(deps-dev): bump tar-fs from 2.1.3 to 2.1.4 (#914)
+
+## [4.9.5] (June 9, 2025)
+
+- ci: use new pkg (#891)
+- build(deps-dev): bump fastify from 4.29.0 to 4.29.1 (#881)
+- build(deps-dev): bump tar-fs from 2.1.2 to 2.1.3 (#884)
+- build(deps-dev): bump axios from 1.7.9 to 1.8.2 (#886)
+- build(deps-dev): bump webpack-dev-server from 4.15.2 to 5.2.1 (#885)
+- i18n: new translations (#889)
+
+## [4.9.4] (June 9, 2025)
+
+- build: add ghcr.io docker image
+- build(deps-dev): bump esbuild from 0.19.12 to 0.25.0 (#869)
+- build: replace deprecated `pkg` with `@yao-pkg/pkg` (#868)
+- i18n: new translations (#863)
+- ci: replace apt with apt-get (#860)
+
+## [4.9.3] (January 30, 2025)
+
+- build: upgrade deps (#858)
+- docs: fix readme badge (#857)
+
+## [4.9.2] (January 30, 2025)
+
+- ci: always use version from package.json from ci (#855)
+- ci: upload deb with gh cli to avoid override (#854)
+
+## [4.9.1] (January 30, 2025)
+
+- i18n: new translations (#852)
+- ci: use bazel@7 to build deb (#851)
+
+## [4.9.0] (January 15, 2025)
+
+- feat: add filter by filesystem location + bonus tooltip on overflowed filter names (#518)
+- fix(ui): some dark mode fixes (#714)
+- fix: check if user service is bootstrapped before removing instances (#835)
+- fix: run compaction every interval (#834)
+- docs: add notes about upstream rtorrent json-rpc (#845)
+- i18n: new translations (#848, #841)
+- build(deps): bump nanoid from 3.3.7 to 3.3.8 (#833)
+
+## [4.8.5] (December 10, 2024)
+
+- fix(rTorrent): support xmlrpc int type (#829)
+- fix(rTorrent): prevent extra commas in serialized XML (#830)
+- fix(qBittorrent): api version state handling (#826)
+- fix(qBittorrent): Missing states (#817)
+- build: remove deprecated package `frontmatter-markdown-loader` (#831)
+- build(deps): bump cross-spawn from 7.0.3 to 7.0.5 (#823)
+- build(deps): bump http-proxy-middleware from 2.0.6 to 2.0.7 (#816)
+- i18n: new translations (#821)
+- ci: fix docker-dbg job (#822)
+
+## [4.8.4] (October 9, 2024)
+
+- fix: add_paused changed to add_stopped in qbit 5 (#810)
+- ci: fix release workflow (#808)
+- build(deps-dev): bump express from 4.19.2 to 4.20.0 (#805)
+- build(deps-dev): bump body-parser from 1.20.2 to 1.20.3 (#804)
+- build(deps): bump find-my-way from 8.2.0 to 8.2.2 (#807)
+- build(deps-dev): bump webpack from 5.93.0 to 5.94.0 (#806)
+
+## [4.8.3] (October 8, 2024)
+
+- fix: resume and pause does not work with qbittorrent 5 (#801)
+- fix: changed transmission ratio calculation to total size instead of downloaded size (#791)
+- fix: correct buffers concatenation in socket (#787)
+- style: add new rule for imports (#785)
+- build: fix docker warn (#784)
+- build: enable pnpm link (#783)
+- build: embed mmdb as pure js data (#782)
+- build: remove deprecated babel plugin (#781)
+- i18n: new translations (#802)
+
+## [4.8.2] (May 4, 2024)
+
+nothing new, just a new release to for deb files.
+
+## [4.8.1] (May 4, 2024)
+
+- feat: new args `--disable-rate-limit` to disable rate limit on api except login (#737)
+- fix: only generate mediainfo for video file (#741)
+- fix: `/metainfo` json response for error (#740)
+
+## [4.8.0] (April 24, 2024)
+
+- fix(client): filter empty tags when setting/submitting tags (#715)
+- fix(client): modal overflow on mobile (#713)
+- fix(server): content-type on responding html (#708)
+- fix(client): allows modal to grow when inner width exceeds container (#597)
+- fix(client): misc styles (#691)
+- fix(server): `@fastify/express` doesn't work with http2 (#705)
+- fix(client): tracker filter size conditional render logic and react key prop (#702)
+- fix: log error trace (#697)
+- fix(server): handle number port (#692)
+- feat(client): detect magnet and torrent links from clipboard (#690)
+- server: remove port requirement, permit running on paths (#680)
+- perf: mediainfo router should use async/await to get file info (#656)
+- feat: use relative path in mediainfo info (#657)
+- TorrentGeneralInfo: drop leading and trailing whitespaces from comment (#674)
+- LinkedText: fix torrent comment line break (#667)
+- server: rTorrent: manage request queue with p-queue - fix memory leak (#650)
+- TransferRateGraph: explicitly declare width and height to 100%
+- server: qBittorrent: use POST method for API calls
+- server: qBittorrent: log in using POST method (#594)
+- server: torrentService: normalize case of hash during torrent lookup
+- TorrentListColumns: add "Finished" column (#565)
+- styles: sortable-list: disallow selecting text in a list
+- client: scripts: development: drop unnecessary browser popup
+- MoveTorrentsModal: suggest longest common prefix as path
+- server: rTorrent: throw error when file moving fails
+- FilesystemBrowser: line break unconditionally for long paths
+- TorrentListDropzone: pop up "Add Torrents" modal instead of adding directly
+- server: rTorrent: avoid relying on type coercion of RPC value
+- server: rTorrent: remove "hasLoadThrow" and fold into "isJSONCapable"
+- server: ditch unmaintained "spdy"
+- SortableList: switch to clauderic/dnd-kit
+- server: drop databases before removing user
+- server: switch to @seald/nedb
+- server: tests: replace "ts-jest/utils" with "ts-jest"
+- TorrentGeneralInfo: display "None" when there is no comment
+- LinkedText: drop RegEx incompatible with Safari
+- feature: display comment inside .torrent in torrent details (#541)
+- TransferRateGraph: fix blank graph in some cases
+- TorrentList: fix "a wild 0 appears"
+- client: Fix regression introduced in PR #519, fixes #522 (#523)
+- sidebar: make filter sections collapsible (#519)
+- client: add page title speed display preference
+- DownloadRulesTab, FeedsTab: force new component when editing
+- server: add shebang to bundled executable
+- Dockerfile: use the "npm run build" command
+- server: create production build with webpack directly
+- server: flatten directory structure a bit
+- server: tests: ensure connectivity to client before tests
+- server: tests: confirm deletion of torrents before continue
+- client: reformat "typings.d.ts", fixup ffcc5c8e0
+- server: tests: mock response to torrents fetch
+- server: normalize fetching of torrents added with URL
+- client: fix webpack devServer port selection
+- styles: apply dark theme to TorrentListDropzone
+- TorrentFilterStore: simplify and fix scroll to top on filter change
+- client: allow multi-select of filters with Ctrl and Shift keys
+- server: remove unused history snapshots and make it in-mem only
+- TagFilters, TrackerFilters: fix filtering by tag/tracker
+- client: remove unnecessary "UIActions" abstraction
+- server: Transmission: normalize "unknown" ETA (-2) to infinity (-1) (#432)
+
 ## [4.7.0] (October 9, 2021)
 
 - Display total size by tag or tracker of torrents on sidebar (#369, @sabersalv)
@@ -536,3 +702,17 @@ Other changes:
 [4.6.0]: https://github.com/jesec/flood/compare/v4.5.4...v4.6.0
 [4.6.1]: https://github.com/jesec/flood/compare/v4.6.0...v4.6.1
 [4.7.0]: https://github.com/jesec/flood/compare/v4.6.1...v4.7.0
+[4.8.0]: https://github.com/jesec/flood/compare/v4.7.0...v4.8.0
+[4.8.1]: https://github.com/jesec/flood/compare/v4.8.0...v4.8.1
+[4.8.2]: https://github.com/jesec/flood/compare/v4.8.1...v4.8.2
+[4.8.3]: https://github.com/jesec/flood/compare/v4.8.2...v4.8.3
+[4.8.4]: https://github.com/jesec/flood/compare/v4.8.3...v4.8.4
+[4.8.5]: https://github.com/jesec/flood/compare/v4.8.4...v4.8.5
+[4.9.0]: https://github.com/jesec/flood/compare/v4.8.5...v4.9.0
+[4.9.1]: https://github.com/jesec/flood/compare/v4.9.0...v4.9.1
+[4.9.2]: https://github.com/jesec/flood/compare/v4.9.1...v4.9.2
+[4.9.3]: https://github.com/jesec/flood/compare/v4.9.2...v4.9.3
+[4.9.4]: https://github.com/jesec/flood/compare/v4.9.3...v4.9.4
+[4.9.5]: https://github.com/jesec/flood/compare/v4.9.4...v4.9.5
+[4.10.0]: https://github.com/jesec/flood/compare/v4.9.5...v4.10.0
+[4.11.0]: https://github.com/jesec/flood/compare/v4.10.0...v4.11.0

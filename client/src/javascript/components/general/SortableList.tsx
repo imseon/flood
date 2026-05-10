@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import {DndContext, KeyboardSensor, MouseSensor, TouchSensor, useSensor} from '@dnd-kit/core';
 import {FC, MouseEvent, ReactNode, useState} from 'react';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
+import {css} from '@client/styled-system/css';
 
 import SortableListItem from './SortableListItem';
 
@@ -11,6 +12,7 @@ interface SortableListProps {
   lockedIDs: Array<string>;
   items: string[];
   renderItem: (id: string, index: number) => ReactNode;
+  getItemClassName?: (id: string, index: number) => string | undefined;
   onMouseDown?: (event: MouseEvent) => void;
   onDrop?: (items: this['items']) => void;
 }
@@ -20,6 +22,7 @@ const SortableList: FC<SortableListProps> = ({
   items,
   lockedIDs,
   renderItem,
+  getItemClassName,
   onMouseDown,
   onDrop,
 }: SortableListProps) => {
@@ -32,7 +35,7 @@ const SortableList: FC<SortableListProps> = ({
 
   return (
     <div
-      css={{width: '100%', touchAction: 'none'}}
+      className={css({width: '100%', touchAction: 'none'})}
       role="none"
       onMouseDown={(event) => {
         if (onMouseDown) {
@@ -70,7 +73,12 @@ const SortableList: FC<SortableListProps> = ({
           <ul className={classes}>
             {currentItems.map((id, index) => {
               return (
-                <SortableListItem id={id} disabled={lockedIDs.includes(id)} key={id}>
+                <SortableListItem
+                  id={id}
+                  disabled={lockedIDs.includes(id)}
+                  key={id}
+                  className={getItemClassName?.(id, index)}
+                >
                   {renderItem(id, index)}
                 </SortableListItem>
               );
@@ -80,11 +88,6 @@ const SortableList: FC<SortableListProps> = ({
       </DndContext>
     </div>
   );
-};
-
-SortableList.defaultProps = {
-  onMouseDown: undefined,
-  onDrop: undefined,
 };
 
 export default SortableList;

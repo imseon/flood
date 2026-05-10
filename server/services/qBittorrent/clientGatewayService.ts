@@ -1,7 +1,6 @@
-import fs from 'fs';
-import {homedir} from 'os';
-import parseTorrent from 'parse-torrent';
-import path from 'path';
+import fs from 'node:fs';
+import {homedir} from 'node:os';
+import path from 'node:path';
 
 import type {
   AddTorrentByFileOptions,
@@ -9,6 +8,8 @@ import type {
   ReannounceTorrentsOptions,
   SetTorrentsTagsOptions,
 } from '@shared/schema/api/torrents';
+import type {QBittorrentConnectionSettings} from '@shared/schema/ClientConnectionSettings';
+import type {SetClientSettingsOptions} from '@shared/types/api/client';
 import type {
   CheckTorrentsOptions,
   DeleteTorrentsOptions,
@@ -22,33 +23,35 @@ import type {
   StopTorrentsOptions,
 } from '@shared/types/api/torrents';
 import type {ClientSettings} from '@shared/types/ClientSettings';
-import type {QBittorrentConnectionSettings} from '@shared/schema/ClientConnectionSettings';
-import type {TorrentContent} from '@shared/types/TorrentContent';
 import type {TorrentList, TorrentListSummary, TorrentProperties} from '@shared/types/Torrent';
+import type {TorrentContent} from '@shared/types/TorrentContent';
 import type {TorrentPeer} from '@shared/types/TorrentPeer';
 import type {TorrentTracker} from '@shared/types/TorrentTracker';
 import type {TransferSummary} from '@shared/types/TransferData';
-import type {SetClientSettingsOptions} from '@shared/types/api/client';
+import parseTorrent from 'parse-torrent';
 
-import ClientGatewayService from '../clientGatewayService';
-import ClientRequestManager from './clientRequestManager';
+import {TorrentPriority} from '../../../shared/types/Torrent';
+import {TorrentContentPriority} from '../../../shared/types/TorrentContent';
+import {TorrentTrackerType} from '../../../shared/types/TorrentTracker';
 import {fetchUrls} from '../../util/fetchUtil';
 import {getDomainsFromURLs} from '../../util/torrentPropertiesUtil';
+import ClientGatewayService from '../clientGatewayService';
+import ClientRequestManager from './clientRequestManager';
+import {QBittorrentTorrentContentPriority, QBittorrentTorrentTrackerStatus} from './types/QBittorrentTorrentsMethods';
+import {isApiVersionAtLeast} from './util/apiVersionCheck';
 import {
   getTorrentPeerPropertiesFromFlags,
   getTorrentStatusFromState,
   getTorrentTrackerTypeFromURL,
 } from './util/torrentPropertiesUtil';
-import {QBittorrentTorrentContentPriority, QBittorrentTorrentTrackerStatus} from './types/QBittorrentTorrentsMethods';
-import {TorrentContentPriority} from '../../../shared/types/TorrentContent';
-import {TorrentPriority} from '../../../shared/types/Torrent';
-import {TorrentTrackerType} from '../../../shared/types/TorrentTracker';
 
 class QBittorrentClientGatewayService extends ClientGatewayService {
   private clientRequestManager = new ClientRequestManager(this.user.client as QBittorrentConnectionSettings);
   private cachedProperties: Record<
     string,
-    Pick<TorrentProperties, 'comment' | 'dateCreated' | 'isPrivate' | 'trackerURIs'>
+    Pick<TorrentProperties, 'comment' | 'dateCreated' | 'isPrivate' | 'trackerURIs'> & {
+      trackerMessage: string;
+    }
   > = {};
 
   async addTorrentsByFile({
@@ -84,11 +87,12 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
       throw new Error();
     }
 
+    const method = isApiVersionAtLeast(await this.clientRequestManager.apiVersion, '2.11.0') ? 'stopped' : 'paused';
     await this.clientRequestManager
       .torrentsAddFiles(fileBuffers, {
         savepath: destination,
         tags: tags.join(','),
-        paused: !start,
+        [method]: !start,
         root_folder: !isBasePath,
         contentLayout: isBasePath ? 'NoSubfolder' : undefined,
         sequentialDownload: isSequential,
@@ -118,17 +122,21 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
       throw new Error();
     }
 
-    await this.clientRequestManager
-      .torrentsAddURLs(urls, {
-        savepath: destination,
-        tags: tags.join(','),
-        paused: !start,
-        root_folder: !isBasePath,
-        contentLayout: isBasePath ? 'NoSubfolder' : undefined,
-        sequentialDownload: isSequential,
-        skip_checking: isCompleted,
-      })
-      .then(this.processClientRequestSuccess, this.processClientRequestError);
+    const method = isApiVersionAtLeast(await this.clientRequestManager.apiVersion, '2.11.0') ? 'stopped' : 'paused';
+
+    if (urls[0]) {
+      await this.clientRequestManager
+        .torrentsAddURLs(urls, {
+          savepath: destination,
+          tags: tags.join(','),
+          [method]: !start,
+          root_folder: !isBasePath,
+          contentLayout: isBasePath ? 'NoSubfolder' : undefined,
+          sequentialDownload: isSequential,
+          skip_checking: isCompleted,
+        })
+        .then(this.processClientRequestSuccess, this.processClientRequestError);
+    }
 
     if (files[0]) {
       return this.addTorrentsByFile({
@@ -360,10 +368,12 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
             const trackers = await this.clientRequestManager.getTorrentTrackers(hash).catch(() => undefined);
 
             if (properties != null && trackers != null && Array.isArray(trackers)) {
+              const firstTrackerMsg = trackers.find((t) => t.msg.length > 0)?.msg ?? '';
               this.cachedProperties[hash] = {
                 comment: properties?.comment,
                 dateCreated: properties?.creation_date,
                 isPrivate: trackers[0]?.msg.includes('is private'),
+                trackerMessage: firstTrackerMsg,
                 trackerURIs: getDomainsFromURLs(
                   trackers
                     .map((tracker) => tracker.url)
@@ -382,9 +392,11 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
                 comment = '',
                 dateCreated = 0,
                 isPrivate = false,
+                trackerMessage = '',
                 trackerURIs = [],
               } = this.cachedProperties[info.hash] || {};
 
+              const isSeeding = info.state.endsWith('UP');
               const torrentProperties: TorrentProperties = {
                 bytesDone: info.completed,
                 comment: comment,
@@ -395,12 +407,14 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
                 directory: info.save_path,
                 downRate: info.dlspeed,
                 downTotal: info.downloaded,
-                eta: info.eta >= 8640000 ? -1 : info.eta,
+                // Seeding states have ETA until seeding goal (ratio/time); show it when valid.
+                // For non-seeding states, hide ETA when dlspeed is 0 to avoid showing stale values.
+                eta: info.eta >= 8640000 || (!isSeeding && info.dlspeed === 0) ? -1 : info.eta,
                 hash: info.hash.toUpperCase(),
                 isPrivate,
                 isInitialSeeding: info.super_seeding,
                 isSequential: info.seq_dl,
-                message: '', // in tracker method
+                message: trackerMessage,
                 name: info.name,
                 peersConnected: info.num_leechs,
                 peersTotal: info.num_incomplete,
@@ -410,7 +424,7 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
                 seedsConnected: info.num_seeds,
                 seedsTotal: info.num_complete,
                 sizeBytes: info.size,
-                status: getTorrentStatusFromState(info.state),
+                status: getTorrentStatusFromState(info.state, trackerMessage),
                 tags: info.tags === '' ? [] : info.tags.split(',').map((tag) => tag.trim()),
                 trackerURIs,
                 upRate: info.upspeed,
@@ -461,7 +475,7 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
         return {path: path.join(homedir(), '\\AppData\\Local\\qBittorrent\\BT_backup'), case: 'lower'};
       case 'darwin':
         return {path: path.join(homedir(), '/Library/Application Support/qBittorrent/BT_backup'), case: 'lower'};
-      default:
+      default: {
         const legacyPath = path.join(homedir(), '/.local/share/data/qBittorrent/BT_backup');
         try {
           await fs.promises.access(legacyPath);
@@ -469,6 +483,7 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
         } catch {
           return {path: path.join(homedir(), '/.local/share/qBittorrent/BT_backup'), case: 'lower'};
         }
+      }
     }
   }
 
@@ -525,7 +540,7 @@ class QBittorrentClientGatewayService extends ClientGatewayService {
 
   async testGateway(): Promise<void> {
     return this.clientRequestManager
-      .updateAuthCookie()
+      .updateConnection()
       .then(() => this.processClientRequestSuccess(undefined), this.processClientRequestError);
   }
 }

@@ -1,5 +1,6 @@
 import {applyPatch, Operation} from 'fast-json-patch';
-import {computed, makeAutoObservable} from 'mobx';
+import {makeAutoObservable} from 'mobx';
+import type React from 'react';
 
 import filterTorrents from '@client/util/filterTorrents';
 import selectTorrents from '@client/util/selectTorrents';
@@ -19,17 +20,34 @@ class TorrentStore {
     makeAutoObservable(this);
   }
 
-  @computed get sortedTorrents(): Array<TorrentProperties> {
+  get sortedTorrents(): Array<TorrentProperties> {
     return sortTorrents(Object.values(this.torrents), SettingStore.floodSettings.sortTorrents);
   }
 
-  @computed get filteredTorrents(): Array<TorrentProperties> {
-    const {searchFilter, statusFilter, tagFilter, trackerFilter} = TorrentFilterStore;
+  get filteredTorrents(): Array<TorrentProperties> {
+    const {locationFilter, searchFilter, statusFilter, tagFilter, trackerFilter} = TorrentFilterStore;
 
     let filteredTorrents = Object.assign([], this.sortedTorrents) as Array<TorrentProperties>;
 
+    if (locationFilter.length) {
+      filteredTorrents = filterTorrents(filteredTorrents, {
+        type: 'location',
+        filter: locationFilter,
+      });
+    }
+
     if (searchFilter !== '') {
-      filteredTorrents = termMatch(filteredTorrents, (properties) => properties.name, searchFilter);
+      const nameMatchedHashes = new Set(
+        termMatch(filteredTorrents, (properties) => properties.name, searchFilter).map((p) => p.hash),
+      );
+      // Fuzzy match torrent names, exact match infohash (after trim/lowercase).
+      const normalizedSearchFilter = searchFilter.trim().toLowerCase();
+
+      filteredTorrents = filteredTorrents.filter(
+        (properties) =>
+          nameMatchedHashes.has(properties.hash) ||
+          (normalizedSearchFilter !== '' && properties.hash.toLowerCase() === normalizedSearchFilter),
+      );
     }
 
     if (statusFilter.length) {

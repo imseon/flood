@@ -1,27 +1,27 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@emotion/react",
     "sourceMap": true,
-    "target": "esnext",
-    "moduleResolution": "node",
+    "target": "es2022",
+    "moduleResolution": "Bundler",
     "allowJs": true,
-    "module": "esnext",
+    "module": "es2022",
     "noEmit": true,
     "strict": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
     "useDefineForClassFields": true,
+    "useUnknownInCatchVariables": false,
     "baseUrl": "./",
     "paths": {
+      "@client/storybook-mocks/*": [".storybook/mocks/*"],
       "@client/*": ["client/src/javascript/*"],
       "@server/*": ["server/*"],
       "@shared/*": ["shared/*"]
     }
   },
-  "include": ["./client/**/*.ts", "./client/**/*.tsx", "./server/**/*.ts", "./server/**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": ["./**/*.ts", "./**/*.mts", "./**/*.tsx", "./.storybook/**/*.ts", "./.storybook/**/*.tsx"],
+  "exclude": ["node_modules", "cypress", "dist"]
 }

@@ -2,6 +2,7 @@ import classnames from 'classnames';
 import {FC} from 'react';
 import {Trans} from '@lingui/react';
 
+import {css} from '@client/styled-system/css';
 import {Checkbox} from '@client/ui';
 import {Lock} from '@client/ui/icons';
 
@@ -12,23 +13,29 @@ interface ToggleListProps {
     id?: string;
     label: string;
     isLocked?: boolean;
-    defaultChecked: boolean;
+    checked?: boolean;
+    defaultChecked?: boolean;
     onClick?: (checked: boolean) => void;
   }>;
 }
 
 const ToggleList: FC<ToggleListProps> = ({className, checkboxLabel, items}: ToggleListProps) => (
-  <div css={{width: '100%'}} role="none">
+  <div className={css({width: '100%'})} role="none">
     <ul
-      className={classnames('sortable-list', className)}
-      css={{
-        '.sortable-list__item': {
-          cursor: 'default',
-        },
-      }}
+      className={classnames(
+        'sortable-list',
+        className,
+        css({
+          '& .sortable-list__item': {
+            cursor: 'default',
+          },
+        }),
+      )}
     >
       {items.map((item) => {
-        const {id, label, isLocked = false, defaultChecked, onClick} = item;
+        const {id, label, isLocked = false, checked, defaultChecked, onClick} = item;
+        const checkboxStateProps = checked == null ? {defaultChecked} : {checked};
+
         return (
           <li
             className={classnames('sortable-list__item', {
@@ -44,7 +51,7 @@ const ToggleList: FC<ToggleListProps> = ({className, checkboxLabel, items}: Togg
               {isLocked ? null : (
                 <span className="sortable-list__content sortable-list__content--secondary">
                   <Checkbox
-                    defaultChecked={defaultChecked}
+                    {...checkboxStateProps}
                     id={id}
                     onClick={(event) => onClick?.((event.target as HTMLInputElement).checked)}
                   >
@@ -59,10 +66,5 @@ const ToggleList: FC<ToggleListProps> = ({className, checkboxLabel, items}: Togg
     </ul>
   </div>
 );
-
-ToggleList.defaultProps = {
-  className: undefined,
-  checkboxLabel: undefined,
-};
 
 export default ToggleList;

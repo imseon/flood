@@ -1,14 +1,19 @@
 import {FC, useState} from 'react';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {useLingui} from '@lingui/react';
 
 import SidebarFilter from './SidebarFilter';
 import Expando from './Expando';
+import SettingStore from '../../stores/SettingStore';
 import TorrentFilterStore from '../../stores/TorrentFilterStore';
 
 const TrackerFilters: FC = observer(() => {
   const {i18n} = useLingui();
   const [expanded, setExpanded] = useState<boolean>(true);
+
+  if (!SettingStore.floodSettings.UISidebarFilterTracker) {
+    return null;
+  }
 
   const trackers = Object.keys(TorrentFilterStore.taxonomy.trackerCounts);
 

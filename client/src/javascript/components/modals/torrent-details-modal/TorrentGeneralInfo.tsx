@@ -1,5 +1,5 @@
 import {FC} from 'react';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {Trans, useLingui} from '@lingui/react';
 
 import type {TorrentProperties} from '@shared/types/Torrent';
@@ -207,7 +207,7 @@ const TorrentGeneralInfo: FC = observer(() => {
               <Trans id="torrents.details.general.comment" />
             </td>
             <td className="torrent-details__detail__value">
-              {torrent.comment ? <LinkedText text={torrent.comment} /> : VALUE_NOT_AVAILABLE}
+              {torrent.comment ? <LinkedText text={torrent.comment.trim()} /> : VALUE_NOT_AVAILABLE}
             </td>
           </tr>
           <tr className="torrent-details__table__heading">

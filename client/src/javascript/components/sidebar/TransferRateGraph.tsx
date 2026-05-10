@@ -1,7 +1,7 @@
 import {area, curveMonotoneX, line} from 'd3-shape';
 import {FC, MutableRefObject, useRef, useState} from 'react';
 import {max} from 'd3-array';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {scaleLinear} from 'd3-scale';
 
 import type {TransferDirection, TransferHistory} from '@shared/types/TransferData';
@@ -62,7 +62,6 @@ const TransferRateGraph: FC<TransferRateGraphProps> = observer(
       ])
       .range([height - 10, 10]);
 
-    // eslint-disable-next-line no-param-reassign
     handlerRefs.current = {
       handleMouseMove: (mouseX: number) => {
         hoverPoint.current = xScale.invert(mouseX);
@@ -88,7 +87,7 @@ const TransferRateGraph: FC<TransferRateGraphProps> = observer(
     const interpolation = curveMonotoneX;
 
     return (
-      <svg className="graph" id={id}>
+      <svg className="graph" id={id} height="100%" width="100%">
         <defs>
           <TransferRateGraphGradient direction="upload" />
           <TransferRateGraphGradient direction="download" />

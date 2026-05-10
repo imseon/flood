@@ -1,4 +1,4 @@
-import {computed, makeAutoObservable} from 'mobx';
+import {makeAutoObservable} from 'mobx';
 import jsonpatch, {Operation} from 'fast-json-patch';
 import {KeyboardEvent, MouseEvent, TouchEvent} from 'react';
 
@@ -6,6 +6,7 @@ import type {Taxonomy} from '@shared/types/Taxonomy';
 import torrentStatusMap, {TorrentStatus} from '@shared/constants/torrentStatusMap';
 
 class TorrentFilterStore {
+  locationFilter: Array<string> = [];
   searchFilter = '';
   statusFilter: Array<TorrentStatus> = [];
   tagFilter: Array<string> = [];
@@ -14,15 +15,23 @@ class TorrentFilterStore {
   filterTrigger = false;
 
   taxonomy: Taxonomy = {
+    locationTree: {directoryName: '', fullPath: '', children: [], containedCount: 0, containedSize: 0},
     statusCounts: {},
+    statusSizes: {},
     tagCounts: {},
     tagSizes: {},
     trackerCounts: {},
     trackerSizes: {},
   };
 
-  @computed get isFilterActive() {
-    return this.searchFilter !== '' || this.statusFilter.length || this.tagFilter.length || this.trackerFilter.length;
+  get isFilterActive() {
+    return (
+      this.locationFilter.length ||
+      this.searchFilter !== '' ||
+      this.statusFilter.length ||
+      this.tagFilter.length ||
+      this.trackerFilter.length
+    );
   }
 
   constructor() {
@@ -30,6 +39,7 @@ class TorrentFilterStore {
   }
 
   clearAllFilters() {
+    this.locationFilter = [];
     this.searchFilter = '';
     this.statusFilter = [];
     this.tagFilter = [];
@@ -47,6 +57,12 @@ class TorrentFilterStore {
 
   setSearchFilter(filter: string) {
     this.searchFilter = filter;
+    this.filterTrigger = !this.filterTrigger;
+  }
+
+  setLocationFilters(filter: string | '', event: KeyboardEvent | MouseEvent | TouchEvent) {
+    // keys: [] to disable shift-clicking as it doesn't make sense in a tree
+    this.computeFilters([], this.locationFilter, filter, event);
     this.filterTrigger = !this.filterTrigger;
   }
 
@@ -85,7 +101,7 @@ class TorrentFilterStore {
   ) {
     if (newFilter === ('' as T)) {
       currentFilters.splice(0);
-    } else if (event.shiftKey) {
+    } else if (event.shiftKey && keys.length) {
       if (currentFilters.length) {
         const lastKey = currentFilters[currentFilters.length - 1];
         const lastKeyIndex = keys.indexOf(lastKey);

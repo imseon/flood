@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 import {FC} from 'react';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {useLingui} from '@lingui/react';
 
 import {Add, Menu, Remove, Start, Stop} from '@client/ui/icons';
@@ -28,12 +28,7 @@ const ActionBar: FC = observer(() => {
           label="actionbar.button.sidebar.expand.collapse"
           slug="sidebar-expand-collapse"
           icon={<Menu />}
-          clickHandler={() => {
-            const view = document.getElementsByClassName('application__view')[0];
-            if (view != null) {
-              view.classList.toggle('application__view--sidebar-alternative-state');
-            }
-          }}
+          clickHandler={() => UIStore.toggleSidebarAlternativeState()}
           noTip
         />
       </div>

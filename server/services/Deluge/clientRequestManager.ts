@@ -1,14 +1,10 @@
-import {deflate, inflate} from 'zlib';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import tls from 'tls';
-
-import {decode, encode} from './util/rencode';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import tls from 'node:tls';
+import {deflate, inflate} from 'node:zlib';
 
 import type {DelugeConnectionSettings} from '@shared/schema/ClientConnectionSettings';
-
-import type {RencodableArray, RencodableData, RencodableObject} from './util/rencode';
 
 import type {
   DelugeCorePreferences,
@@ -17,6 +13,8 @@ import type {
   DelugeCoreTorrentStatuses,
   DelugeCoreTorrentTracker,
 } from './types/DelugeCoreMethods';
+import type {RencodableArray, RencodableData, RencodableObject} from './util/rencode';
+import {decode, encode} from './util/rencode';
 
 const DELUGE_RPC_PROTOCOL_VERSION = 0x01;
 const protocolVerBuf = Buffer.alloc(1);
@@ -40,7 +38,7 @@ class ClientRequestManager {
     switch (response[0]) {
       case DelugeRpcResponseType.RESPONSE: {
         const [, request_id, return_value] = response;
-        const [resolve] = this.requestQueue[request_id as number] ?? [,];
+        const [resolve] = this.requestQueue[request_id as number] ?? [];
 
         delete this.requestQueue[request_id as number];
         resolve?.(return_value);
@@ -49,7 +47,7 @@ class ClientRequestManager {
       }
       case DelugeRpcResponseType.ERROR: {
         const [, request_id, exception_type, exception_msg] = response;
-        const [, reject] = this.requestQueue[request_id as number] ?? [,];
+        const [, reject] = this.requestQueue[request_id as number] ?? [];
 
         delete this.requestQueue[request_id as number];
         reject?.(new Error(`${exception_type}: ${exception_msg}`));
@@ -128,15 +126,18 @@ class ClientRequestManager {
       tlsSocket.on('secureConnect', () => {
         tlsSocket.on('data', (chunk: Buffer) => {
           if (rpcBuffer != null) {
-            rpcBuffer = Buffer.concat([rpcBuffer, chunk], rpcBufferSize);
+            rpcBuffer = Buffer.concat(
+              [rpcBuffer, chunk],
+              rpcBufferSize <= rpcBuffer.length + chunk.length ? rpcBufferSize : undefined,
+            );
           } else {
             if (chunk[0] !== DELUGE_RPC_PROTOCOL_VERSION) {
               handleError(new Error('Unexpected Deluge RPC version.'));
               return;
             }
 
-            rpcBufferSize = chunk.slice(1, 5).readUInt32BE(0);
-            rpcBuffer = chunk.slice(5);
+            rpcBufferSize = chunk.subarray(1, 5).readUInt32BE(0);
+            rpcBuffer = chunk.subarray(5);
           }
 
           if (rpcBuffer.length >= rpcBufferSize) {

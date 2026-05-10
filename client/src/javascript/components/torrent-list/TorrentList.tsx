@@ -1,5 +1,5 @@
 import {FC, KeyboardEvent, ReactNode, useEffect, useRef} from 'react';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {reaction} from 'mobx';
 import {Trans} from '@lingui/react';
 import {useEvent} from 'react-use';
@@ -14,10 +14,11 @@ import SettingStore from '@client/stores/SettingStore';
 import TorrentFilterStore from '@client/stores/TorrentFilterStore';
 import TorrentStore from '@client/stores/TorrentStore';
 import SortDirections from '@client/constants/SortDirections';
+import UIStore from '@client/stores/UIStore';
 
 import type {TorrentListColumn} from '@client/constants/TorrentListColumns';
 
-import defaultFloodSettings from '@shared/constants/defaultFloodSettings';
+import {defaultFloodSettings} from '@shared/schema/FloodSettings';
 
 import ContextMenuMountPoint from '../general/ContextMenuMountPoint';
 import ListViewport from '../general/ListViewport';
@@ -50,7 +51,7 @@ const TorrentList: FC = observer(() => {
   useEvent('keydown', (e: KeyboardEvent) => {
     const {ctrlKey, key, metaKey, repeat, target} = e;
 
-    const tagName = (target as HTMLElement)?.tagName.toUpperCase();
+    const tagName = (target as HTMLElement)?.tagName?.toUpperCase();
     if (tagName === 'INPUT' || tagName === 'TEXTAREA') {
       return;
     }
@@ -62,6 +63,18 @@ const TorrentList: FC = observer(() => {
     if ((metaKey || ctrlKey) && key === 'a') {
       e.preventDefault();
       TorrentStore.selectAllTorrents();
+    }
+
+    if ((metaKey || ctrlKey) && key === 'v') {
+      (async () => {
+        const text = await navigator?.clipboard?.readText();
+        const isMagnetLink = text?.startsWith('magnet:?');
+        const isTorrentLink = text?.startsWith('http') && text?.endsWith('.torrent');
+        if (isMagnetLink || isTorrentLink) {
+          e.preventDefault();
+          UIStore.setActiveModal({id: 'add-torrents', tab: 'by-url', urls: [{id: 0, value: text}]});
+        }
+      })();
     }
   });
 

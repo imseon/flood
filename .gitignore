@@ -70,3 +70,21 @@ coverage/
 # Test results
 cypress/videos
 cypress/screenshots
+
+taskfile.yaml
+
+## Panda
+
+# Playwright
+.playwright-mcp
+
+# Storybook
+css-snapshots/
+*storybook.log
+storybook-static
+
+# Local scratch
+tmp/
+package-lock.json
+
+.codex

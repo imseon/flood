@@ -1,8 +1,19 @@
 import {FC, useState} from 'react';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {useLingui} from '@lingui/react';
 
-import {Active, All, Completed, DownloadSmall, Error, Inactive, Stop, Spinner, UploadSmall} from '@client/ui/icons';
+import {
+  Active,
+  All,
+  CircleExclamation,
+  Completed,
+  DownloadSmall,
+  Error,
+  Inactive,
+  Stop,
+  Spinner,
+  UploadSmall,
+} from '@client/ui/icons';
 import TorrentFilterStore from '@client/stores/TorrentFilterStore';
 
 import type {TorrentStatus} from '@shared/constants/torrentStatusMap';
@@ -59,6 +70,11 @@ const StatusFilters: FC = observer(() => {
       icon: <Inactive />,
     },
     {
+      label: i18n._('filter.status.warning'),
+      slug: 'warning',
+      icon: <CircleExclamation />,
+    },
+    {
       label: i18n._('filter.status.error'),
       slug: 'error',
       icon: <Error />,
@@ -77,6 +93,7 @@ const StatusFilters: FC = observer(() => {
       }
       name={filter.label}
       slug={filter.slug}
+      size={TorrentFilterStore.taxonomy.statusSizes[filter.slug] ?? 0}
     />
   ));
 
