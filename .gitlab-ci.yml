@@ -1,0 +1,44 @@
+stages:
+  - build
+  - release
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://192.168.31.220:2375
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_API_VERSION: "1.43"
+
+build:
+  stage: build
+  image: docker:latest
+  retry: 2
+  services:
+    - docker:dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - docker build --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA .
+    - docker build --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:latest .
+    - docker push $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/flood:latest
+  only:
+    - master
+
+build-multiarch:
+  stage: build
+  image: docker:latest
+  retry: 2
+  services:
+    - docker:dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - apk add --no-cache qemu-bin qemu-user-static
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  script:
+    - docker buildx create --name mybuilder --use
+    - docker buildx inspect --bootstrap
+    - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA --push .
+    - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:latest --push .
+  only:
+    - master
+  when: manual
