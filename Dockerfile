@@ -27,7 +27,7 @@ RUN npm ci --legacy-peer-deps
 RUN npm run build
 
 # Now get the clean Node.js image
-FROM ${NODE_IMAGE} as flood
+FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} as flood
 
 WORKDIR /usr/src/app/
 
@@ -55,7 +55,7 @@ ENTRYPOINT ["npm", "--prefix=/usr/src/app/", "run", "start:development:server", 
 # docker exec -it ${container_id} npm --prefix=/usr/src/app/ run start:development:client
 
 # rtorrent-flood image
-FROM docker.io/jesec/rtorrent:master as rtorrent
+FROM --platform=$BUILDPLATFORM docker.io/jesec/rtorrent:master as rtorrent
 FROM flood as rtorrent-flood
 
 # Copy rTorrent
