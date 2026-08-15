@@ -1,5 +1,5 @@
 import type {infer as zodInfer} from 'zod';
-import {array, boolean, number, record, strictObject, string} from 'zod';
+import {array, boolean, literal, number, record, strictObject, string} from 'zod';
 
 import {tagSchema, tagsSchema} from './tags';
 
@@ -8,7 +8,7 @@ export const addTorrentByURLSchema = strictObject({
   // URLs to download torrents from
   urls: array(string()).nonempty(),
   // Cookies to attach to requests, arrays of strings in the format "name=value" with domain as key
-  cookies: record(array(string())).optional(),
+  cookies: record(string(), array(string())).optional(),
   // Path of destination
   destination: string().optional(),
   // Tags
@@ -138,6 +138,7 @@ export const setTorrentContentsPropertiesSchema = strictObject({
 
 // GET /api/torrents/{hash}/contents/{indices}/data
 export const contentTokenSchema = strictObject({
+  type: literal('content'),
   username: string(),
   hash: string(),
   indices: string(),

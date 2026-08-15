@@ -37,6 +37,7 @@ export const floodSettingKeySchema = z.enum(
     UISidebarFilterLocation: true,
     UISidebarFilterTracker: true,
     UISidebarFilterTag: true,
+    UITrackerWarningEnabled: true,
   }) as [keyof FloodSettings, ...Array<keyof FloodSettings>],
 );
 
@@ -69,6 +70,7 @@ const torrentListColumnsSchema = z.array(torrentListColumnItemSchema).default([
   {id: 'eta', visible: true},
   {id: 'ratio', visible: true},
   {id: 'sizeBytes', visible: true},
+  {id: 'selectedSizeBytes', visible: false},
   {id: 'peers', visible: true},
   {id: 'seeds', visible: true},
   {id: 'dateActive', visible: false},
@@ -99,6 +101,7 @@ const torrentListColumnWidthsSchema = torrentListColumnWidthsSchemaBase.default(
   eta: 100,
   ratio: 100,
   sizeBytes: 100,
+  selectedSizeBytes: 100,
   peers: 100,
   seeds: 100,
   dateActive: 100,
@@ -170,6 +173,7 @@ export const floodSettingsSchema = z
     UISidebarFilterLocation: z.boolean().default(true),
     UISidebarFilterTracker: z.boolean().default(true),
     UISidebarFilterTag: z.boolean().default(true),
+    UITrackerWarningEnabled: z.boolean().default(true),
   })
   .strict();
 

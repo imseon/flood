@@ -128,7 +128,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
         if (user == null) {
           throw new UnauthorizedError();
         }
-        setAuthContext(req, {user, services: getAllServices(user)!});
+        setAuthContext(req, {user, services: getAllServices(user)});
         if (reply.sent) {
           return;
         }
@@ -164,7 +164,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
       const credentials = req.body;
 
       const user = await Users.createUser(credentials);
-      bootstrapServicesForUser(user);
+      await bootstrapServicesForUser(user);
 
       if (req.query.cookie === 'false') {
         return {username: user.username};
@@ -290,7 +290,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
                 z
                   .object({
                     username: z.string(),
-                    level: z.nativeEnum(AccessLevel),
+                    level: z.enum(AccessLevel),
                   })
                   .strict(),
               ),
@@ -358,7 +358,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
 
           await destroyUserServices(user._id);
 
-          bootstrapServicesForUser(user);
+          await bootstrapServicesForUser(user);
 
           return {};
         },

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-import fastify from 'fastify';
+import fastify, {LogController} from 'fastify';
 import supertest from 'supertest';
 import {afterAll, beforeAll, describe, expect, it, vi} from 'vitest';
 
@@ -12,8 +12,8 @@ import constructRoutes from '..';
 
 vi.useRealTimers();
 
-const app = fastify({disableRequestLogging: true, logger: false});
-let request: supertest.SuperTest<supertest.Test>;
+const app = fastify({logController: new LogController({disableRequestLogging: true}), logger: false});
+let request: supertest.Agent;
 
 beforeAll(async () => {
   await constructRoutes(app);
@@ -138,7 +138,7 @@ describe('PATCH /api/feed-monitor/feeds/{id}', () => {
       .expect(200)
       .expect('Content-Type', /json/);
 
-    addedFeed = {...(addedFeed as Feed), ...modifyFeedOptions};
+    addedFeed = {...addedFeed, ...modifyFeedOptions};
 
     expect(res.body).toStrictEqual([addedFeed]);
   });

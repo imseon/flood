@@ -1,15 +1,14 @@
 import path from 'node:path';
 
 import chalk from 'chalk';
-import esbuild from 'esbuild';
 import fs from 'fs-extra';
+import {build as rolldownBuild} from 'rolldown';
 import {build as viteBuild} from 'vite';
 
 import {buildPaths} from '../shared/config/buildPaths.mjs';
 
 const paths = buildPaths;
 
-process.env.BABEL_ENV = 'production';
 process.env.NODE_ENV = 'production';
 
 // Makes the script crash on unhandled rejections instead of silently
@@ -106,17 +105,22 @@ const build = async () => {
 
   console.log('building server (embedding ui assets)...');
 
-  await esbuild.build({
-    entryPoints: [path.resolve(buildPaths.appSrc, 'server/bin/start.ts')],
-    outfile: path.resolve(buildPaths.appSrc, 'dist/index.js'),
-    platform: 'node',
-    target: 'node12',
-    bundle: true,
-    external: ['geoip-country'],
-    sourcemap: 'inline',
-    define: {
-      __FLOOD_EMBEDDED_ASSETS__: JSON.stringify(embeddedAssets),
+  await rolldownBuild({
+    input: [path.resolve(buildPaths.appSrc, 'server/bin/start.ts')],
+    output: {
+      file: path.resolve(buildPaths.appSrc, 'dist/index.js'),
+      codeSplitting: false,
+      format: 'esm',
+      sourcemap: 'inline',
     },
+    transform: {
+      define: {
+        __FLOOD_EMBEDDED_ASSETS__: JSON.stringify(embeddedAssets),
+      },
+      target: 'node22',
+    },
+    platform: 'node',
+    external: ['geoip-country'],
   });
 
   console.log('Client build complete.');

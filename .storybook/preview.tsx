@@ -8,13 +8,13 @@ import {i18n} from '@lingui/core';
 import {I18nProvider} from '@lingui/react';
 import type {Preview} from '@storybook/react';
 import React, {useEffect} from 'react';
-import {BrowserRouter} from 'react-router-dom';
+import {BrowserRouter} from 'react-router';
 
 // Import language files with Lingui loader
 import {messages as enMessages} from '../client/src/javascript/i18n/strings/en.json?lingui';
 
 // Configure i18n with proper message format
-i18n.load('en', enMessages as Record<string, string[]>);
+i18n.load('en', enMessages);
 i18n.activate('en');
 
 const preview: Preview = {
@@ -104,7 +104,6 @@ const preview: Preview = {
           {value: 'light', title: 'Light'},
           {value: 'dark', title: 'Dark'},
         ],
-        showName: true,
       },
     },
   },

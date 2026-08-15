@@ -45,9 +45,9 @@ pnpm run test                        # Run tests to catch regressions
 ### Build & Run
 
 ```bash
-# Package Manager: pnpm (v9.7.0) is the project's package manager
+# Package Manager: pnpm (v11.5.2) is the project's package manager
 pnpm install --frozen-lockfile  # Install dependencies with lockfile
-pnpm run build                   # Build production (esbuild for server, Vite for client)
+pnpm run build                   # Build production (rolldown for server, Vite for client)
 pnpm start                       # Start production server (node --enable-source-maps dist/index.js)
 pnpm start -- --port 8080       # With custom options (pass args after --)
 ```
@@ -82,6 +82,8 @@ pnpm test -- --project qbittorrent
 pnpm test -- --project transmission
 pnpm test -- --project auth
 ```
+
+> **Note**: `vitest.config.mts` only configures backend (`server/`) integration test projects. The frontend (`client/`) does not use Vitest — frontend tests are covered by Storybook interaction tests (`pnpm run test-storybook`). Do not add Vitest projects or `.test.ts` unit tests for client code.
 
 ## Critical Architectural Patterns
 
@@ -135,7 +137,7 @@ Flood provides an OpenAPI specification and interactive Swagger UI:
 
 ### Build Process
 
-- **Server**: esbuild bundles to single file (`dist/index.js`) with source maps
+- **Server**: rolldown bundles to single file (`dist/index.js`) with source maps
 - **Client**: Vite with code splitting, CSS extraction, asset optimization
 - **Assets**: Static files copied to `dist/assets/`
 - **CSS**: Panda CSS generates styled-system via `panda codegen`
@@ -203,7 +205,8 @@ Each client in `/server/services/[client]/` follows this pattern:
 
 - JSON message catalogs in `/client/src/javascript/i18n/strings/`
 - Lazy-loaded based on user preference
-- Build extracts messages via Babel plugin
+- Lingui catalogs are loaded and compiled through `@lingui/vite-plugin`;
+- **Only modify `en.json`** — all other locale files are generated from a translation platform and should never be edited directly
 
 ### Testing Infrastructure
 
@@ -315,7 +318,7 @@ For reverse proxy setups:
 
 - **TypeScript errors?** Run `pnpm run check-types` and fix from top to bottom
 - **Lint errors?** Run `pnpm run lint` - most are auto-fixable with `pnpm run format-source`
-- **Build fails?** Check both server (esbuild) and client (Vite) output
+- **Build fails?** Check both server (rolldown) and client (Vite) output
 - **Tests fail?** Run specific test file with `pnpm test -- path/to/test`
 - **Panda CSS issues?** Run `panda codegen` to regenerate styled-system
 
@@ -376,7 +379,7 @@ npm run test-storybook          # Run Storybook tests
 - Stories located in `client/src/javascript/components/**/*.stories.tsx`
 - Webpack aliases configured for `@client/` and `@shared/` paths
 - Full CSS module support matching production Vite config
-- Babel decorators enabled for MobX compatibility
+- Storybook uses Vite to match the application build
 
 ### Frontend Mocking Strategy
 
