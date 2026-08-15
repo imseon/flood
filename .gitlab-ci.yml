@@ -5,8 +5,14 @@ stages:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_HOST: tcp://192.168.31.220:2375
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_API_VERSION: "1.43"
+  DOCKER_TLS_CERTDIR: ''
+  DOCKER_API_VERSION: '1.43'
+  HTTP_PROXY: 'http://192.168.31.177:8118'
+  HTTPS_PROXY: 'http://192.168.31.177:8118'
+  NO_PROXY: 'localhost,127.0.0.1,192.168.31.220,.gitlab,.seon.im'
+  http_proxy: 'http://192.168.31.177:8118'
+  https_proxy: 'http://192.168.31.177:8118'
+  no_proxy: 'localhost,127.0.0.1,192.168.31.220,.gitlab,.seon.im'
 
 build:
   stage: build
@@ -17,8 +23,24 @@ build:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
-    - docker build --pull=false --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA .
-    - docker build --pull=false --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:latest .
+    - >
+      docker build --pull=false --platform linux/amd64
+      --build-arg HTTP_PROXY="$HTTP_PROXY"
+      --build-arg HTTPS_PROXY="$HTTPS_PROXY"
+      --build-arg NO_PROXY="$NO_PROXY"
+      --build-arg http_proxy="$http_proxy"
+      --build-arg https_proxy="$https_proxy"
+      --build-arg no_proxy="$no_proxy"
+      -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA .
+    - >
+      docker build --pull=false --platform linux/amd64
+      --build-arg HTTP_PROXY="$HTTP_PROXY"
+      --build-arg HTTPS_PROXY="$HTTPS_PROXY"
+      --build-arg NO_PROXY="$NO_PROXY"
+      --build-arg http_proxy="$http_proxy"
+      --build-arg https_proxy="$https_proxy"
+      --build-arg no_proxy="$no_proxy"
+      -t $CI_REGISTRY_IMAGE/flood:latest .
     - docker push $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/flood:latest
   only:
@@ -39,8 +61,24 @@ build-multiarch:
   script:
     - docker buildx create --name mybuilder --use
     - docker buildx inspect --bootstrap
-    - docker buildx build --pull=false --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA --push .
-    - docker buildx build --pull=false --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:latest --push .
+    - >
+      docker buildx build --pull=false --platform linux/amd64,linux/arm64
+      --build-arg HTTP_PROXY="$HTTP_PROXY"
+      --build-arg HTTPS_PROXY="$HTTPS_PROXY"
+      --build-arg NO_PROXY="$NO_PROXY"
+      --build-arg http_proxy="$http_proxy"
+      --build-arg https_proxy="$https_proxy"
+      --build-arg no_proxy="$no_proxy"
+      -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA --push .
+    - >
+      docker buildx build --pull=false --platform linux/amd64,linux/arm64
+      --build-arg HTTP_PROXY="$HTTP_PROXY"
+      --build-arg HTTPS_PROXY="$HTTPS_PROXY"
+      --build-arg NO_PROXY="$NO_PROXY"
+      --build-arg http_proxy="$http_proxy"
+      --build-arg https_proxy="$https_proxy"
+      --build-arg no_proxy="$no_proxy"
+      -t $CI_REGISTRY_IMAGE/flood:latest --push .
   only:
     - master
   when: manual
