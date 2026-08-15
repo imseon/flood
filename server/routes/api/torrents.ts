@@ -122,6 +122,98 @@ const torrentsRoutes = async (fastify: FastifyInstance) => {
     })
     .strict();
 
+  typedFastify.get(
+    '/search-movie',
+    {
+      schema: {
+        summary: 'Search movie title from torrent filename',
+        tags: ['Torrents'],
+        security: [{User: []}],
+        querystring: z.object({name: z.string().min(1).max(300)}),
+        response: {
+          200: z.object({
+            query: z.string(),
+            results: z.array(z.object({title: z.string(), year: z.number().nullable(), url: z.string()})),
+          }),
+        },
+      },
+    },
+    async (request) => {
+      // Keep the parser deliberately conservative: release metadata is removed, while
+      // the likely title and year are retained for the remote search.
+      const rawName = request.query.name.replace(/\.[^.]+$/, '').replace(/[._-]+/g, ' ');
+      const yearMatch = rawName.match(/\b((?:19|20)\d{2})\b/);
+      // In common release names everything after the first year is release metadata.
+      // Prefer the part before the year to avoid searching codec names as title words.
+      const titleBeforeYear = yearMatch == null ? rawName : rawName.slice(0, yearMatch.index ?? rawName.length);
+      const query = titleBeforeYear
+        .replace(/\b(?:第\s*\d+季|season\s*\d+)\b/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const searchQueries = [
+        ...new Set(
+          [
+            query,
+            query
+              .replace(/\b(?:theatrical|director'?s?|extended|unrated|cut|edition|limited|remastered)\b/gi, '')
+              .replace(/\s+/g, ' ')
+              .trim(),
+            query.split(' ').slice(0, 4).join(' '),
+          ].filter(Boolean),
+        ),
+      ];
+      const found = new Map<string, {title: string; year: number | null; url: string}>();
+      const tmdbApiKey = process.env.TMDB_API_KEY;
+      const tmdbApiBase = process.env.TMDB_API_BASE ?? 'https://api.themoviedb.org/3';
+      try {
+        // TMDB provides localized Chinese titles when language=zh-CN is requested.
+        if (tmdbApiKey != null) {
+          for (const searchQuery of searchQueries) {
+            const tmdbYear = yearMatch?.[1] == null ? '' : `&year=${yearMatch[1]}`;
+            const tmdbUrl = `${tmdbApiBase}/search/movie?api_key=${encodeURIComponent(
+              tmdbApiKey,
+            )}&language=zh-CN&query=${encodeURIComponent(searchQuery)}${tmdbYear}`;
+            const response = await fetch(tmdbUrl, {signal: AbortSignal.timeout(8000)});
+            if (!response.ok) continue;
+            const data = (await response.json()) as {
+              results?: Array<{title?: string; original_title?: string; release_date?: string; id?: number}>;
+            };
+            // TMDB may append fuzzy, unrelated titles for short names such as
+            // "Coma". Keep the best result for each fallback query rather than
+            // presenting those unrelated suggestions as movie matches.
+            const item = data.results?.[0];
+            if (item?.title != null) {
+              const year = item.release_date?.slice(0, 4) || yearMatch?.[1];
+              found.set(`${item.title}-${year}`, {
+                title: item.title,
+                year: year == null ? null : Number(year),
+                url: `https://www.themoviedb.org/movie/${item.id ?? ''}`,
+              });
+            }
+            if (found.size > 0) return {query, results: [...found.values()]};
+          }
+        }
+        for (const searchQuery of searchQueries) {
+          const searchUrl = `https://movie.douban.com/j/subject_suggest?q=${encodeURIComponent(searchQuery)}`;
+          const response = await fetch(searchUrl, {headers: {'user-agent': 'Mozilla/5.0 Flood movie title lookup'}});
+          if (!response.ok) continue;
+          const data = (await response.json()) as Array<{title?: string; year?: string; url?: string; type?: string}>;
+          data
+            .filter((item) => item.type === 'movie' && item.title != null)
+            .forEach((item) => {
+              const year =
+                item.year == null ? (yearMatch?.[1] == null ? null : Number(yearMatch[1])) : Number(item.year);
+              found.set(`${item.title}-${year}`, {title: item.title!, year, url: item.url ?? ''});
+            });
+          if (found.size >= 10) break;
+        }
+        return {query, results: [...found.values()].slice(0, 10)};
+      } catch {
+        return {query, results: [...found.values()].slice(0, 10)};
+      }
+    },
+  );
+
   fastify.get(
     '/',
     {

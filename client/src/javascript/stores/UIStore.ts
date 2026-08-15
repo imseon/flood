@@ -86,6 +86,10 @@ export type Modal =
   | {
       id: 'torrent-details';
       hash: string;
+    }
+  | {
+      id: 'movie-search';
+      hash: string;
     };
 
 class UIStore {

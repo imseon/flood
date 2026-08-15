@@ -60,6 +60,7 @@
     }
 
     &__viewport {
+      overflow-x: auto !important;
       overflow-y: overlay !important;
     }
 

@@ -13,6 +13,7 @@ import SetTagsModal from './set-tags-modal/SetTagsModal';
 import SetTrackersModal from './set-trackers-modal/SetTrackersModal';
 import SettingsModal from './settings-modal/SettingsModal';
 import TorrentDetailsModal from './torrent-details-modal/TorrentDetailsModal';
+import MovieSearchModal from './movie-search-modal/MovieSearchModal';
 import UIStore from '../../stores/UIStore';
 
 import type {Modal} from '../../stores/UIStore';
@@ -39,6 +40,8 @@ const createModal = (id: Modal['id']): React.ReactNode => {
       return <SettingsModal />;
     case 'torrent-details':
       return <TorrentDetailsModal />;
+    case 'movie-search':
+      return <MovieSearchModal />;
     default:
       return null;
   }

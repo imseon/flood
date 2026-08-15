@@ -57,6 +57,11 @@ const emitFailedToAddTorrentAlert = (count: number) => {
 };
 
 const TorrentActions = {
+  searchMovie: (
+    name: string,
+  ): Promise<{query: string; results: Array<{title: string; year: number | null; url: string}>}> =>
+    axios.get(`${baseURI}api/torrents/search-movie`, {params: {name}}).then((response) => response.data),
+
   addTorrentsByUrls: (options: AddTorrentByURLOptions): Promise<void> =>
     axios.post<TorrentAddResponse>(`${baseURI}api/torrents/add-urls`, options).then(
       ({data}) => {

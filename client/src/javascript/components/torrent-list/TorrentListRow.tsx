@@ -48,7 +48,7 @@ const displayContextMenu = (hash: string, event: KeyboardEvent | MouseEvent | To
   });
 };
 
-const displayTorrentDetails = (hash: string) => UIStore.setActiveModal({id: 'torrent-details', hash});
+const displayTorrentDetails = (hash: string) => UIStore.setActiveModal({id: 'movie-search', hash});
 
 const selectTorrent = (hash: string, event: KeyboardEvent | MouseEvent | TouchEvent) =>
   TorrentStore.setSelectedTorrents({hash, event});
