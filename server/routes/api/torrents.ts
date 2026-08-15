@@ -179,7 +179,13 @@ const torrentsRoutes = async (fastify: FastifyInstance) => {
               const tmdbUrl = `${tmdbApiBase}/search/${tmdbType}?api_key=${encodeURIComponent(
                 tmdbApiKey,
               )}&language=zh-CN&query=${encodeURIComponent(searchQuery)}${yearParameter}`;
-              const response = await fetch(tmdbUrl, {signal: AbortSignal.timeout(8000)});
+              let response: Response;
+              try {
+                response = await fetch(tmdbUrl, {signal: AbortSignal.timeout(3000)});
+              } catch {
+                // A blocked/unreachable TMDB must not prevent fallback providers.
+                continue;
+              }
               if (!response.ok) continue;
               const data = (await response.json()) as {
                 results?: Array<{
