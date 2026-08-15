@@ -166,31 +166,44 @@ const torrentsRoutes = async (fastify: FastifyInstance) => {
       const tmdbApiKey = process.env.TMDB_API_KEY;
       const tmdbApiBase = process.env.TMDB_API_BASE ?? 'https://api.themoviedb.org/3';
       try {
-        // TMDB provides localized Chinese titles when language=zh-CN is requested.
         if (tmdbApiKey != null) {
-          for (const searchQuery of searchQueries) {
-            const tmdbYear = yearMatch?.[1] == null ? '' : `&year=${yearMatch[1]}`;
-            const tmdbUrl = `${tmdbApiBase}/search/movie?api_key=${encodeURIComponent(
-              tmdbApiKey,
-            )}&language=zh-CN&query=${encodeURIComponent(searchQuery)}${tmdbYear}`;
-            const response = await fetch(tmdbUrl, {signal: AbortSignal.timeout(8000)});
-            if (!response.ok) continue;
-            const data = (await response.json()) as {
-              results?: Array<{title?: string; original_title?: string; release_date?: string; id?: number}>;
-            };
-            // TMDB may append fuzzy, unrelated titles for short names such as
-            // "Coma". Keep the best result for each fallback query rather than
-            // presenting those unrelated suggestions as movie matches.
-            const item = data.results?.[0];
-            if (item?.title != null) {
-              const year = item.release_date?.slice(0, 4) || yearMatch?.[1];
-              found.set(`${item.title}-${year}`, {
-                title: item.title,
-                year: year == null ? null : Number(year),
-                url: `https://www.themoviedb.org/movie/${item.id ?? ''}`,
-              });
+          // TMDB has separate movie and TV indexes. Release names containing a
+          // season/episode marker should use the TV index first.
+          const isLikelySeries = /\b(?:s\d{1,2}(?:e\d{1,2})?|season\s*\d+|第\s*\d+季)\b/i.test(rawName);
+          const tmdbTypes = isLikelySeries ? ['tv', 'movie'] : ['movie', 'tv'];
+          for (const tmdbType of tmdbTypes) {
+            for (const searchQuery of searchQueries) {
+              const tmdbYear = yearMatch?.[1] == null ? '' : `&first_air_date_year=${yearMatch[1]}`;
+              const yearParameter = tmdbType === 'movie' && yearMatch != null ? `&year=${yearMatch[1]}` : tmdbYear;
+              const tmdbUrl = `${tmdbApiBase}/search/${tmdbType}?api_key=${encodeURIComponent(
+                tmdbApiKey,
+              )}&language=zh-CN&query=${encodeURIComponent(searchQuery)}${yearParameter}`;
+              const response = await fetch(tmdbUrl, {signal: AbortSignal.timeout(8000)});
+              if (!response.ok) continue;
+              const data = (await response.json()) as {
+                results?: Array<{
+                  title?: string;
+                  name?: string;
+                  release_date?: string;
+                  first_air_date?: string;
+                  id?: number;
+                }>;
+              };
+              // TMDB may append fuzzy, unrelated titles for short names. Keep the
+              // best result for each fallback query rather than all fuzzy matches.
+              const item = data.results?.[0];
+              const title = item?.title ?? item?.name;
+              if (title != null) {
+                const releaseDate = item?.release_date ?? item?.first_air_date;
+                const year = releaseDate?.slice(0, 4) || yearMatch?.[1];
+                found.set(`${title}-${year}`, {
+                  title,
+                  year: year == null ? null : Number(year),
+                  url: `https://www.themoviedb.org/${tmdbType}/${item?.id ?? ''}`,
+                });
+              }
+              if (found.size > 0) return {query, results: [...found.values()]};
             }
-            if (found.size > 0) return {query, results: [...found.values()]};
           }
         }
         for (const searchQuery of searchQueries) {
