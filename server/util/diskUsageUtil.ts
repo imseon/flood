@@ -62,7 +62,7 @@ export const diskUsage: Readonly<Record<SupportedPlatform, (timeout: number) => 
   linux: (timeout) =>
     spawnAsync(
       'df',
-      ['--exclude-type=devtmpfs', '--exclude-type=squashfs', '--exclude-type=tmpfs', '--exclude-type=overlay'],
+      ['-P'],
       {
         timeout: timeout,
       },
