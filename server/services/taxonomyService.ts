@@ -1,7 +1,8 @@
 import type {TorrentStatus} from '@shared/constants/torrentStatusMap';
 import type {LocationTreeNode, Taxonomy} from '@shared/types/Taxonomy';
 import type {TorrentList, TorrentProperties} from '@shared/types/Torrent';
-import jsonpatch, {Operation} from 'fast-json-patch';
+import * as jsonpatch from 'fast-json-patch/commonjs/duplex.js';
+import type {Operation} from 'fast-json-patch';
 
 import torrentStatusMap from '../../shared/constants/torrentStatusMap';
 import BaseService from './BaseService';

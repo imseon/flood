@@ -1,5 +1,6 @@
 import type {TorrentListSummary, TorrentProperties} from '@shared/types/Torrent';
-import jsonpatch, {Operation} from 'fast-json-patch';
+import * as jsonpatch from 'fast-json-patch/commonjs/duplex.js';
+import type {Operation} from 'fast-json-patch';
 
 import config from '../../config';
 import {hasTorrentFinished} from '../util/torrentPropertiesUtil';
