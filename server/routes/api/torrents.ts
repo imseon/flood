@@ -147,7 +147,7 @@ const torrentsRoutes = async (fastify: FastifyInstance) => {
       // Prefer the part before the year to avoid searching codec names as title words.
       const titleBeforeYear = yearMatch == null ? rawName : rawName.slice(0, yearMatch.index ?? rawName.length);
       const query = titleBeforeYear
-        .replace(/\b(?:第\s*\d+季|season\s*\d+)\b/gi, ' ')
+        .replace(/\b(?:s\d{1,2}(?:e\d{1,2})?|第\s*\d+季|season\s*\d+)\b/gi, ' ')
         .replace(/\s+/g, ' ')
         .trim();
       const searchQueries = [
@@ -173,7 +173,8 @@ const torrentsRoutes = async (fastify: FastifyInstance) => {
           const tmdbTypes = isLikelySeries ? ['tv', 'movie'] : ['movie', 'tv'];
           for (const tmdbType of tmdbTypes) {
             for (const searchQuery of searchQueries) {
-              const tmdbYear = yearMatch?.[1] == null ? '' : `&first_air_date_year=${yearMatch[1]}`;
+              const tmdbYear =
+                yearMatch?.[1] == null || tmdbType === 'tv' ? '' : `&first_air_date_year=${yearMatch[1]}`;
               const yearParameter = tmdbType === 'movie' && yearMatch != null ? `&year=${yearMatch[1]}` : tmdbYear;
               const tmdbUrl = `${tmdbApiBase}/search/${tmdbType}?api_key=${encodeURIComponent(
                 tmdbApiKey,
@@ -191,9 +192,10 @@ const torrentsRoutes = async (fastify: FastifyInstance) => {
               };
               // TMDB may append fuzzy, unrelated titles for short names. Keep the
               // best result for each fallback query rather than all fuzzy matches.
-              const item = data.results?.[0];
-              const title = item?.title ?? item?.name;
-              if (title != null) {
+              const items = (data.results ?? []).slice(0, tmdbType === 'tv' ? 10 : 1);
+              items.forEach((item) => {
+                const title = item?.title ?? item?.name;
+                if (title == null) return;
                 const releaseDate = item?.release_date ?? item?.first_air_date;
                 const year = releaseDate?.slice(0, 4) || yearMatch?.[1];
                 found.set(`${title}-${year}`, {
@@ -201,7 +203,7 @@ const torrentsRoutes = async (fastify: FastifyInstance) => {
                   year: year == null ? null : Number(year),
                   url: `https://www.themoviedb.org/${tmdbType}/${item?.id ?? ''}`,
                 });
-              }
+              });
               if (found.size > 0) return {query, results: [...found.values()]};
             }
           }
