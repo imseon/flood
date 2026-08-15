@@ -15,12 +15,19 @@ ARG NODE_IMAGE=docker.io/node:24.18.1-alpine
 
 FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS nodebuild
 
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+
 WORKDIR /usr/src/app/
 
 # Copy project files
 COPY . ./
 
-RUN npm i -g corepack && corepack enable && corepack install
+RUN npm_config_proxy="$HTTP_PROXY" npm_config_https_proxy="$HTTPS_PROXY" npm i -g corepack && corepack enable && corepack install
 
 # Fetch dependencies from npm
 RUN pnpm install --frozen-lockfile
@@ -30,6 +37,13 @@ RUN npm run build
 
 # Now get the clean Node.js image
 FROM ${NODE_IMAGE} AS flood
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
 
 WORKDIR /usr/src/app/
 
