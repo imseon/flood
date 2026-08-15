@@ -17,8 +17,8 @@ build:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
-    - docker build --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA .
-    - docker build --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:latest .
+    - docker build --pull=false --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA .
+    - docker build --pull=false --platform linux/amd64 -t $CI_REGISTRY_IMAGE/flood:latest .
     - docker push $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/flood:latest
   only:
@@ -39,8 +39,8 @@ build-multiarch:
   script:
     - docker buildx create --name mybuilder --use
     - docker buildx inspect --bootstrap
-    - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA --push .
-    - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:latest --push .
+    - docker buildx build --pull=false --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:$CI_COMMIT_SHA --push .
+    - docker buildx build --pull=false --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE/flood:latest --push .
   only:
     - master
   when: manual
