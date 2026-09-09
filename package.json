@@ -158,7 +158,7 @@
     "mime-types": "3.0.2",
     "mobx": "7.0.0",
     "mobx-react-lite": "5.0.0",
-    "morgan": "1.11.0",
+    "morgan": "1.12.0",
     "overlayscrollbars": "2.16.0",
     "overlayscrollbars-react": "0.5.6",
     "p-queue": "9.3.3",
